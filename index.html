@@ -1,1 +1,95 @@
-index.html
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video Voice to Text MR</title>
+<style>
+body {
+  background: #101827;
+  color: white;
+  font-family: Arial;
+  padding: 20px;
+}
+.container {
+  max-width: 500px;
+  margin: 30px auto;
+  padding: 25px;
+  background: #1e293b;
+  border-radius: 18px;
+}
+h1 { color: #38bdf8; text-align: center; }
+input, select, textarea, button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 15px;
+  box-sizing: border-box;
+  border-radius: 9px;
+  font-size: 16px;
+}
+input, select, textarea {
+  background: #0f172a;
+  color: white;
+  border: 1px solid #475569;
+}
+button {
+  background: #0284c7;
+  color: white;
+  border: none;
+  font-weight: bold;
+}
+textarea { height: 180px; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🎬 Video Voice to Text</h1>
+<p>ভিডিওর কথাকে লেখায় রূপান্তর করুন</p>
+
+<label>ভিডিও লিংক দিন:</label>
+<input id="videoLink" type="url"
+placeholder="ভিডিও লিংক দিন">
+
+<label>ভাষা নির্বাচন করুন:</label>
+<select id="language">
+<option value="bn">বাংলা</option>
+<option value="en">English</option>
+</select>
+
+<button onclick="startConvert()">
+লেখায় রূপান্তর করুন
+</button>
+
+<p id="status">ফলাফল এখানে আসবে</p>
+
+<textarea id="result"
+placeholder="লেখা এখানে আসবে"></textarea>
+
+<button onclick="copyText()">লেখা কপি করুন</button>
+</div>
+
+<script>
+function startConvert() {
+  const link = document.getElementById("videoLink").value;
+
+  if (!link) {
+    alert("ভিডিও লিংক দিন!");
+    return;
+  }
+
+  document.getElementById("status").innerText =
+  "ভিডিও প্রসেসিং সার্ভার এখনো যুক্ত করা হয়নি।";
+}
+
+function copyText() {
+  const text = document.getElementById("result").value;
+  if (!text) {
+    alert("কোনো লেখা নেই!");
+    return;
+  }
+  navigator.clipboard.writeText(text)
+    .then(() => alert("কপি হয়েছে!"));
+}
+</script>
+</body>
+</html>
