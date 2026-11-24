@@ -2,93 +2,156 @@
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Video Voice to Text MR</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video to Bangla Text</title>
 <style>
 body {
+  margin: 0;
+  padding: 20px;
   background: #101827;
   color: white;
-  font-family: Arial;
-  padding: 20px;
+  font-family: Arial, sans-serif;
 }
 .container {
   max-width: 500px;
-  margin: 30px auto;
-  padding: 25px;
+  margin: auto;
   background: #1e293b;
+  padding: 22px;
   border-radius: 18px;
 }
-h1 { color: #38bdf8; text-align: center; }
-input, select, textarea, button {
+h1 { color: #65a9ff; font-size: 25px; }
+p { color: #cbd5e1; }
+button, input {
   width: 100%;
-  padding: 14px;
-  margin-top: 15px;
+  padding: 13px;
+  margin-top: 12px;
   box-sizing: border-box;
-  border-radius: 9px;
-  font-size: 16px;
-}
-input, select, textarea {
-  background: #0f172a;
-  color: white;
-  border: 1px solid #475569;
+  border-radius: 10px;
 }
 button {
-  background: #0284c7;
-  color: white;
   border: none;
+  background: #16803c;
+  color: white;
+  font-size: 16px;
   font-weight: bold;
 }
-textarea { height: 180px; }
+.stop { background: #b83232; }
+.copy { background: #2563eb; }
+textarea {
+  width: 100%;
+  min-height: 180px;
+  margin-top: 15px;
+  padding: 12px;
+  box-sizing: border-box;
+  border-radius: 10px;
+  background: #0b1220;
+  color: white;
+  font-size: 17px;
+}
+video {
+  width: 100%;
+  margin-top: 12px;
+  border-radius: 12px;
+}
+#status { color: #7ee787; }
 </style>
 </head>
 <body>
 <div class="container">
-<h1>🎬 Video Voice to Text</h1>
-<p>ভিডিওর কথাকে লেখায় রূপান্তর করুন</p>
+  <h1>🎬 Video to Bangla Text</h1>
+  <p>ভিডিও নির্বাচন করুন</p>
 
-<label>ভিডিও লিংক দিন:</label>
-<input id="videoLink" type="url"
-placeholder="ভিডিও লিংক দিন">
+  <input type="file" id="videoFile" accept="video/*">
+  <video id="videoPreview" controls style="display:none"></video>
 
-<label>ভাষা নির্বাচন করুন:</label>
-<select id="language">
-<option value="bn">বাংলা</option>
-<option value="en">English</option>
-</select>
+  <p>🎙️ বাংলায় কথা বলুন অথবা মাইক্রোফোন ব্যবহার করুন</p>
 
-<button onclick="startConvert()">
-লেখায় রূপান্তর করুন
-</button>
+  <button onclick="startListening()">🎤 Start Recording</button>
+  <button class="stop" onclick="stopListening()">⏹ Stop</button>
 
-<p id="status">ফলাফল এখানে আসবে</p>
+  <p id="status">প্রস্তুত</p>
 
-<textarea id="result"
-placeholder="লেখা এখানে আসবে"></textarea>
+  <textarea id="result" placeholder="আপনার বাংলা লেখা এখানে দেখা যাবে..."></textarea>
 
-<button onclick="copyText()">লেখা কপি করুন</button>
+  <button class="copy" onclick="copyText()">📋 Copy Text</button>
+  <button onclick="clearText()">🗑 Clear Text</button>
 </div>
 
 <script>
-function startConvert() {
-  const link = document.getElementById("videoLink").value;
+const videoFile = document.getElementById("videoFile");
+const videoPreview = document.getElementById("videoPreview");
+const result = document.getElementById("result");
+const statusText = document.getElementById("status");
 
-  if (!link) {
-    alert("ভিডিও লিংক দিন!");
+videoFile.addEventListener("change", function() {
+  const file = this.files[0];
+  if (!file) return;
+
+  videoPreview.src = URL.createObjectURL(file);
+  videoPreview.style.display = "block";
+  statusText.textContent = "ভিডিও লোড হয়েছে";
+});
+
+let recognition;
+
+function startListening() {
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    statusText.textContent =
+      "এই ব্রাউজারে Speech Recognition সাপোর্ট নেই। Chrome ব্যবহার করুন।";
     return;
   }
 
-  document.getElementById("status").innerText =
-  "ভিডিও প্রসেসিং সার্ভার এখনো যুক্ত করা হয়নি।";
+  recognition = new SpeechRecognition();
+  recognition.lang = "bn-BD";
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  recognition.onstart = function() {
+    statusText.textContent = "🎙️ শুনছি... বাংলায় কথা বলুন";
+  };
+
+  recognition.onresult = function(event) {
+    let text = "";
+
+    for (let i = 0; i < event.results.length; i++) {
+      text += event.results[i][0].transcript;
+    }
+
+    result.value = text;
+  };
+
+  recognition.onerror = function(event) {
+    statusText.textContent = "সমস্যা হয়েছে: " + event.error;
+  };
+
+  recognition.onend = function() {
+    statusText.textContent = "রেকর্ডিং বন্ধ হয়েছে";
+  };
+
+  recognition.start();
+}
+
+function stopListening() {
+  if (recognition) recognition.stop();
 }
 
 function copyText() {
-  const text = document.getElementById("result").value;
-  if (!text) {
-    alert("কোনো লেখা নেই!");
+  if (!result.value) {
+    statusText.textContent = "কপি করার মতো লেখা নেই";
     return;
   }
-  navigator.clipboard.writeText(text)
-    .then(() => alert("কপি হয়েছে!"));
+
+  navigator.clipboard.writeText(result.value)
+    .then(() => statusText.textContent = "লেখা কপি হয়েছে ✅")
+    .catch(() => statusText.textContent = "কপি করা যায়নি");
+}
+
+function clearText() {
+  result.value = "";
+  statusText.textContent = "লেখা মুছে ফেলা হয়েছে";
 }
 </script>
 </body>
